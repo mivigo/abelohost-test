@@ -74,4 +74,49 @@ class Category extends Model
         }
         return $posts;
     }
+
+    /**
+     * Get sorting and paginated list of posts for this category.
+     */
+    public function getPagedPosts(int $page, int $limit, string $sortBy, string $sortOrder): array
+    {
+        $db = Database::getConnection();
+        
+        $orderColumn = $sortBy === 'views' ? 'p.views' : 'p.created_at';
+        $direction = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+        $offset = ($page - 1) * $limit;
+
+        $sql = "SELECT p.* FROM posts p
+                JOIN posts_to_categories ptc ON p.id = ptc.post_id
+                WHERE ptc.category_id = :category_id AND p.deleted_at IS NULL
+                ORDER BY {$orderColumn} {$direction}, p.id {$direction}
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $db->prepare($sql);
+        $stmt->bindValue(':category_id', $this->id, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $posts = [];
+        foreach ($rows as $row) {
+            $posts[] = Post::hydrate($row);
+        }
+        return $posts;
+    }
+
+    /**
+     * Get total count of non-deleted posts in this category.
+     */
+    public function getPostsCount(): int
+    {
+        $db = Database::getConnection();
+        $sql = "SELECT COUNT(*) FROM posts p
+                JOIN posts_to_categories ptc ON p.id = ptc.post_id
+                WHERE ptc.category_id = :category_id AND p.deleted_at IS NULL";
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['category_id' => $this->id]);
+        return (int)$stmt->fetchColumn();
+    }
 }

@@ -38,6 +38,7 @@ $container->set(Router::class, function ($c) {
     
     // Register routes
     $router->addRoute('GET', '/', App\Controllers\HomeController::class, 'index');
+    $router->addRoute('GET', '/category/{id}', App\Controllers\CategoryController::class, 'show');
     $router->addRoute('GET', '/test', App\Controllers\TestController::class, 'index');
     $router->addRoute('GET', '/test/{id}', App\Controllers\TestController::class, 'show');
     
