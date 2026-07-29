@@ -1,24 +1,55 @@
 <?php
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 use App\Core\Env;
+use App\Core\Container;
+use App\Core\Logger;
+use App\Core\Router;
+use App\Core\Middleware\LoggerMiddleware;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7Server\ServerRequestCreator;
 
+// Load environment variables
 Env::load(__DIR__ . '/.env');
 
-echo "<h1>PHP is working!</h1>";
-echo "<p>App Name: " . Env::get('APP_NAME') . "</p>";
-echo "<p>App Debug: " . (Env::get('APP_DEBUG') ? 'Yes' : 'No') . "</p>";
+// Initialize DI Container (PSR-11)
+$container = new Container();
 
-try {
-    $dsn = sprintf("mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
-        Env::get('DB_HOST'),
-        Env::get('DB_PORT'),
-        Env::get('DB_DATABASE')
-    );
-    $pdo = new PDO($dsn, Env::get('DB_USERNAME'), Env::get('DB_PASSWORD'), [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
-    echo "<p style='color: green;'>Database connection successful!</p>";
-} catch (PDOException $e) {
-    echo "<p style='color: red;'>Database connection failed: " . $e->getMessage() . "</p>";
+// Bind core services
+$container->set(Psr\Log\LoggerInterface::class, function () {
+    return new Logger(Env::get('LOG_PATH', __DIR__ . '/storage/logs/app.log'));
+});
+
+$container->set(Router::class, function ($c) {
+    $router = new Router($c);
+    
+    // Register global logger middleware (PSR-15)
+    $logger = $c->get(Psr\Log\LoggerInterface::class);
+    $router->addMiddleware(new LoggerMiddleware($logger));
+    
+    // Register temporary test routes
+    $router->addRoute('GET', '/test', App\Controllers\TestController::class, 'index');
+    $router->addRoute('GET', '/test/{id}', App\Controllers\TestController::class, 'show');
+    
+    return $router;
+});
+
+// Create PSR-7 ServerRequest from globals
+$psr17Factory = new Psr17Factory();
+$creator = new ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
+$request = $creator->fromGlobals();
+
+// Handle request through Router (PSR-15 request handler)
+/** @var Router $router */
+$router = $container->get(Router::class);
+$response = $router->handle($request);
+
+// Send response to browser
+http_response_code($response->getStatusCode());
+foreach ($response->getHeaders() as $name => $values) {
+    foreach ($values as $value) {
+        header(sprintf('%s: %s', $name, $value), false);
+    }
 }
+echo $response->getBody();

@@ -6,18 +6,15 @@ use PDO;
 
 class QueryBuilder
 {
-    protected string $modelClass;
-    protected string $table;
     protected array $wheres = [];
     protected array $orders = [];
     protected ?int $limit = null;
     protected ?int $offset = null;
 
-    public function __construct(string $modelClass, string $table)
-    {
-        $this->modelClass = $modelClass;
-        $this->table = $table;
-    }
+    public function __construct(
+        protected string $modelClass,
+        protected string $table
+    ) {}
 
     /**
      * Add a where condition.
