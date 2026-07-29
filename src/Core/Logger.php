@@ -6,12 +6,9 @@ use Psr\Log\AbstractLogger;
 
 class Logger extends AbstractLogger
 {
-    private string $logFile;
-
-    public function __construct(string $logFile)
+    public function __construct(private string $logFile)
     {
-        $this->logFile = $logFile;
-        $dir = dirname($logFile);
+        $dir = dirname($this->logFile);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
