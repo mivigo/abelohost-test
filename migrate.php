@@ -89,7 +89,6 @@ function runMigrations(PDO $db)
         /** @var \App\Core\Migration $migration */
         $migration = new $className();
         
-        $db->beginTransaction();
         try {
             $migration->up();
             
@@ -99,10 +98,8 @@ function runMigrations(PDO $db)
                 'batch' => $nextBatch
             ]);
             
-            $db->commit();
             echo "OK\n";
         } catch (Exception $e) {
-            $db->rollBack();
             echo "FAILED: " . $e->getMessage() . "\n";
             exit(1);
         }
@@ -143,17 +140,14 @@ function rollbackMigrations(PDO $db)
         /** @var \App\Core\Migration $migration */
         $migration = new $className();
         
-        $db->beginTransaction();
         try {
             $migration->down();
             
             $deleteStmt = $db->prepare("DELETE FROM `migrations` WHERE `migration` = :migration");
             $deleteStmt->execute(['migration' => $name]);
             
-            $db->commit();
             echo "OK\n";
         } catch (Exception $e) {
-            $db->rollBack();
             echo "FAILED: " . $e->getMessage() . "\n";
             exit(1);
         }
