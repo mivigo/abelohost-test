@@ -23,7 +23,16 @@ class Logger extends AbstractLogger
         $formattedMessage = $this->interpolate((string)$message, $context);
         $logEntry = sprintf("[%s] %s: %s\n", $date, strtoupper($level), $formattedMessage);
         
-        file_put_contents($this->logFile, $logEntry, FILE_APPEND);
+        $targetFile = $this->logFile;
+        if (in_array(strtolower($level), ['error', 'critical', 'alert', 'emergency'])) {
+            $errorDir = __DIR__ . '/../../storage/logs/error';
+            if (!is_dir($errorDir)) {
+                mkdir($errorDir, 0777, true);
+            }
+            $targetFile = $errorDir . '/' . date('Y-m-d') . '_errors.log';
+        }
+
+        file_put_contents($targetFile, $logEntry, FILE_APPEND);
     }
 
     /**

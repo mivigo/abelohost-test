@@ -48,10 +48,24 @@ $psr17Factory = new Psr17Factory();
 $creator = new ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
 $request = $creator->fromGlobals();
 
+// Register ErrorHandler in the container
+$container->set(App\Core\ErrorHandler::class, function ($c) {
+    return new App\Core\ErrorHandler($c->get(Psr\Log\LoggerInterface::class));
+});
+
 // Handle request through Router (PSR-15 request handler)
 /** @var Router $router */
 $router = $container->get(Router::class);
-$response = $router->handle($request);
+
+try {
+    $response = $router->handle($request);
+} catch (\Throwable $e) {
+    /** @var App\Core\ErrorHandler $errorHandler */
+    $errorHandler = $container->get(App\Core\ErrorHandler::class);
+    $errorHandler->handle($e);
+    
+    $response = new Nyholm\Psr7\Response(500, ['Content-Type' => 'text/html; charset=utf-8'], "<h1>500 Внутренняя ошибка сервера</h1><p>Произошла непредвиденная ошибка. Подробности записаны в лог.</p>");
+}
 
 // Send response to browser
 http_response_code($response->getStatusCode());
