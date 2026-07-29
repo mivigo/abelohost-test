@@ -11,6 +11,22 @@ abstract class Controller
     public function __construct(protected ContainerInterface $container) {}
 
     /**
+     * Render a Smarty template.
+     */
+    protected function render(string $template, array $data = []): ResponseInterface
+    {
+        /** @var \Smarty $smarty */
+        $smarty = $this->container->get(\Smarty::class);
+        
+        foreach ($data as $key => $value) {
+            $smarty->assign($key, $value);
+        }
+        
+        $body = $smarty->fetch($template);
+        return $this->html($body);
+    }
+
+    /**
      * Create html response.
      */
     protected function html(string $body, int $status = 200): ResponseInterface

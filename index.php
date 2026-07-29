@@ -21,6 +21,14 @@ $container->set(Psr\Log\LoggerInterface::class, function () {
     return new Logger(Env::get('LOG_PATH', __DIR__ . '/storage/logs/app.log'));
 });
 
+$container->set(Smarty::class, function () {
+    $smarty = new Smarty();
+    $smarty->setTemplateDir(__DIR__ . '/view');
+    $smarty->setCompileDir(__DIR__ . '/storage/templates_c');
+    $smarty->setCacheDir(__DIR__ . '/storage/cache');
+    return $smarty;
+});
+
 $container->set(Router::class, function ($c) {
     $router = new Router($c);
     
@@ -28,7 +36,8 @@ $container->set(Router::class, function ($c) {
     $logger = $c->get(Psr\Log\LoggerInterface::class);
     $router->addMiddleware(new LoggerMiddleware($logger));
     
-    // Register temporary test routes
+    // Register routes
+    $router->addRoute('GET', '/', App\Controllers\HomeController::class, 'index');
     $router->addRoute('GET', '/test', App\Controllers\TestController::class, 'index');
     $router->addRoute('GET', '/test/{id}', App\Controllers\TestController::class, 'show');
     
