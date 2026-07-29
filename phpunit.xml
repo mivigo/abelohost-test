@@ -15,13 +15,13 @@
     </testsuites>
 
     <php>
-        <env name="APP_ENV" value="testing"/>
-        <env name="APP_DEBUG" value="false"/>
-        <env name="DB_HOST" value="db"/>
-        <env name="DB_DATABASE" value="blog_test_db"/>
-        <env name="DB_USERNAME" value="blog_user"/>
-        <env name="DB_PASSWORD" value="blog_password"/>
-        <env name="DB_PORT" value="3306"/>
-        <env name="LOG_PATH" value="/var/www/html/storage/logs/test.log"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_DEBUG" value="false" force="true"/>
+        <env name="DB_HOST" value="db" force="true"/>
+        <env name="DB_DATABASE" value="blog_test_db" force="true"/>
+        <env name="DB_USERNAME" value="blog_user" force="true"/>
+        <env name="DB_PASSWORD" value="blog_password" force="true"/>
+        <env name="DB_PORT" value="3306" force="true"/>
+        <env name="LOG_PATH" value="/var/www/html/storage/logs/test.log" force="true"/>
     </php>
 </phpunit>

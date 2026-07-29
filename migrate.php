@@ -54,7 +54,6 @@ function runMigrations(PDO $db)
     $pending = [];
     foreach ($files as $file) {
         $name = basename($file, '.php');
-        if ($name === '.gitkeep') continue;
         if (!in_array($name, $applied)) {
             $pending[] = [
                 'file' => $file,
@@ -169,7 +168,6 @@ function showStatus(PDO $db)
 
     foreach ($files as $file) {
         $name = basename($file, '.php');
-        if ($name === '.gitkeep') continue;
         
         $status = "Pending";
         foreach ($applied as $row) {
