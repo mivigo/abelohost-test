@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="Blog Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_DEBUG" value="false"/>
+        <env name="DB_HOST" value="db"/>
+        <env name="DB_DATABASE" value="blog_test_db"/>
+        <env name="DB_USERNAME" value="blog_user"/>
+        <env name="DB_PASSWORD" value="blog_password"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="LOG_PATH" value="/var/www/html/storage/logs/test.log"/>
+    </php>
+</phpunit>
