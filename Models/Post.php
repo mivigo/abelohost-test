@@ -52,4 +52,49 @@ class Post extends Model
             }
         }
     }
+
+    /**
+     * Get 3 similar posts that share at least one category with this post.
+     */
+    public function getSimilarPosts(int $limit = 3): array
+    {
+        $db = Database::getConnection();
+        
+        $categories = $this->categories();
+        if (empty($categories)) {
+            return [];
+        }
+
+        $categoryIds = array_map(fn($cat) => (int)$cat->id, $categories);
+        
+        $placeholders = [];
+        foreach ($categoryIds as $index => $catId) {
+            $placeholders[] = ":cat_{$index}";
+        }
+
+        $inClause = implode(', ', $placeholders);
+        $sql = "SELECT DISTINCT p.* FROM posts p
+                JOIN posts_to_categories ptc ON p.id = ptc.post_id
+                WHERE ptc.category_id IN ({$inClause})
+                  AND p.id != :post_id
+                  AND p.deleted_at IS NULL
+                ORDER BY p.created_at DESC, p.id DESC
+                LIMIT :limit";
+
+        $stmt = $db->prepare($sql);
+        $stmt->bindValue(':post_id', $this->id, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        foreach ($categoryIds as $index => $catId) {
+            $stmt->bindValue(":cat_{$index}", $catId, PDO::PARAM_INT);
+        }
+        
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $posts = [];
+        foreach ($rows as $row) {
+            $posts[] = self::hydrate($row);
+        }
+        return $posts;
+    }
 }
