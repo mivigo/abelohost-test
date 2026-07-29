@@ -37,11 +37,8 @@ $container->set(Router::class, function ($c) {
     $router->addMiddleware(new LoggerMiddleware($logger));
     
     // Register routes
-    $router->addRoute('GET', '/', App\Controllers\HomeController::class, 'index');
-    $router->addRoute('GET', '/category/{id}', App\Controllers\CategoryController::class, 'show');
-    $router->addRoute('GET', '/post/{id}', App\Controllers\PostController::class, 'show');
-    $router->addRoute('GET', '/test', App\Controllers\TestController::class, 'index');
-    $router->addRoute('GET', '/test/{id}', App\Controllers\TestController::class, 'show');
+    $routesRegister = require __DIR__ . '/routes/web.php';
+    $routesRegister($router);
     
     return $router;
 });
